@@ -2,55 +2,45 @@
 
 This guide covers building and deploying the Agent Task Marketplace on Solana.
 
-## ⚠️ Important: Agave Transition (2024-2025)
-
-**Solana has transitioned to Agave.** The `solana-install` tool is now `agave-install`.
-
-- **New installs**: Use `agave-install` from https://release.anza.xyz
-- **Old installs**: Still work but deprecated after v1.18
-- **Timeline**: v2.0+ only available via Agave
-
-**Key changes:**
-| Old | New |
-|-----|-----|
-| `solana-install` | `agave-install` |
-| `solana-validator` | `agave-validator` (or keep using `solana`) |
-| Source repo | `anza-xyz/agave` (was `solana-labs/solana`) |
-| Release URL | `release.anza.xyz` (was `release.solana.com`) |
-
-Read more: https://github.com/anza-xyz/agave/wiki/Agave-Transition
-
 ## Prerequisites
 
 - **Rust** 1.70+ 
-- **Agave/Solana CLI** 2.0+
-- **Anchor** 0.32.1+
+- **Solana CLI** 1.18.x (NOT 2.x/Agave - see note below)
+- **Anchor CLI** 0.30.1
 - **Node.js** 18+
+
+## ⚠️ Important: Use Solana 1.18.x and Anchor 0.30.1
+
+This project requires **Anchor 0.30.1** and **Solana 1.18.x** (not the new Agave 2.x/3.x).
+
+**Why:** Anchor 0.32+ has breaking changes in the `#[program]` macro that cause compilation issues with our module structure. We use 0.30.1 for stability during the hackathon.
 
 ## Quick Install (Mac/Linux)
 
+### 1. Install Rust (if needed)
 ```bash
-# 1. Install Rust (if not already installed)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
-
-# 2. Install Agave CLI (new Solana)
-sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-
-# 3. Verify
-solana --version  # Should show 2.x.x
-
-# 4. Install Anchor
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli
-
-# 5. Verify
-anchor --version  # Should show 0.32.1
 ```
 
-Or use the setup script:
+### 2. Install Solana CLI 1.18.x
 ```bash
-curl -sSL https://raw.githubusercontent.com/mide-agent/agent-task-marketplace/main/setup-solana.sh | bash
+# Install specific version 1.18.26 (stable)
+sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+
+# Add to PATH
+export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# Verify - should show 1.18.x
+solana --version
+```
+
+### 3. Install Anchor 0.30.1
+```bash
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
+
+# Verify
+anchor --version  # Should show 0.30.1
 ```
 
 ## Build
@@ -70,24 +60,24 @@ anchor build
 ## Test
 
 ```bash
-# Run tests (requires local validator)
+# Run tests
 anchor test
 ```
 
 ## Deploy to Devnet
 
-### 1. Configure Agave/Solana CLI
+### 1. Configure Solana CLI
 ```bash
 solana config set --url devnet
 solana config get
 ```
 
-### 2. Create/Import Wallet
+### 2. Create Wallet
 ```bash
 # Create new wallet
 solana-keygen new --outfile ~/.config/solana/devnet.json
 
-# Or use existing
+# Set as default
 solana config set --keypair ~/.config/solana/devnet.json
 ```
 
@@ -127,69 +117,43 @@ npm run dev
 
 ## Troubleshooting
 
-### "Command not installed: `solana-install`"
-You're using Anchor 0.32+ but have the old Solana CLI. Install Agave:
+### "unresolved import `crate`" error
+You're using Anchor 0.32+ but need 0.30.1:
 ```bash
-sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli --force
 ```
 
-### "No such file or directory (os error 2)"
-Solana/Agave CLI not in PATH:
+### "Command not installed: `solana-install`"
+You have Agave 2.x/3.x but need Solana 1.18.x:
+```bash
+sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+```
+
+### Build Errors
+- Clear cache: `anchor clean && anchor build`
+- Check versions:
+  ```bash
+  anchor --version  # Should be 0.30.1
+  solana --version  # Should be 1.18.x
+  ```
+
+### "No such file or directory"
+Solana CLI not in PATH:
 ```bash
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
 ```
 
-### "Failed to install Agave"
-Check your internet connection and try:
-```bash
-curl -I https://release.anza.xyz/v2.1.0/install
-```
+## Version Compatibility
 
-### Build Errors
-- Ensure Rust version: `rustc --version` should be 1.70+
-- Clear build cache: `cargo clean && anchor build`
-- Update Anchor: `cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli --force`
-
-### Deployment Errors
-- Check wallet has SOL: `solana balance`
-- Verify network: `solana config get`
-- Try more airdrop: `solana airdrop 5`
-
-### Version Mismatches
-This project uses Anchor 0.32.1. If you have a different version:
-```bash
-# Check versions
-anchor --version
-solana --version
-
-# Reinstall matching versions
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli --force
-sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
-```
-
-## Verification
-
-After deployment, verify the program:
-```bash
-solana program show <PROGRAM_ID>
-```
-
-## Integration Test
-
-Use the SDK to test the deployed program:
-```typescript
-import { MarketplaceSDK } from './sdk';
-
-const sdk = new MarketplaceSDK(connection, wallet);
-
-// Test posting a task
-const { taskId } = await sdk.postTask({...});
-console.log('Task created:', taskId.toBase58());
-```
+| Component | Version Required | Notes |
+|-----------|------------------|-------|
+| Anchor | 0.30.1 | NOT 0.32+ |
+| Solana CLI | 1.18.x | NOT 2.x/Agave |
+| Rust | 1.70+ | |
+| Node.js | 18+ | |
 
 ## Resources
 
-- **Agave Transition Guide**: https://github.com/anza-xyz/agave/wiki/Agave-Transition
 - **Anchor Docs**: https://book.anchor-lang.com
 - **Solana Docs**: https://docs.solana.com
 - **Project Repo**: https://github.com/mide-agent/agent-task-marketplace

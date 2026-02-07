@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Solana Dev Environment Setup for Mac (Agave Transition)
-# Run this script to install Agave CLI (new Solana), Anchor, and Rust
-# See: https://github.com/anza-xyz/agave/wiki/Agave-Transition
+# Solana Dev Environment Setup for Mac
+# Uses Solana 1.18.x and Anchor 0.30.1 (stable versions for this project)
 
 set -e
 
-echo "🔧 Setting up Solana (Agave) development environment..."
+echo "🔧 Setting up Solana development environment..."
 echo ""
-echo "Note: Solana has transitioned to Agave. New installs use agave-install."
-echo "See: https://github.com/anza-xyz/agave/wiki/Agave-Transition"
+echo "Versions:"
+echo "  - Solana CLI: 1.18.26 (NOT Agave 2.x)"
+echo "  - Anchor: 0.30.1"
+echo "  - Rust: latest stable"
 echo ""
 
 # Check if Rust is installed
@@ -21,33 +22,24 @@ else
     echo "✅ Rust already installed: $(rustc --version)"
 fi
 
-# Install Agave CLI (new Solana)
+# Install Solana CLI 1.18.x (NOT Agave)
 echo ""
-echo "📦 Installing Agave CLI (Solana successor)..."
-echo "Using: https://release.anza.xyz/v2.1.0/install"
-sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
+echo "📦 Installing Solana CLI 1.18.26..."
+sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
 
 # Add to PATH for this session
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
 
-# Create symlink for backwards compatibility (solana command)
-if command -v agave-validator &> /dev/null && ! command -v solana &> /dev/null; then
-    echo ""
-    echo "🔗 Creating solana symlink for backwards compatibility..."
-    ln -sf "$HOME/.local/share/solana/install/active_release/bin/agave-validator" \
-            "$HOME/.local/share/solana/install/active_release/bin/solana" 2>/dev/null || true
-fi
-
 # Verify installation
 echo ""
-echo "✅ Agave/Solana CLI installed:"
-solana --version || agave-validator --version
+echo "✅ Solana CLI installed:"
+solana --version
 
-# Install Anchor
+# Install Anchor 0.30.1 (specific version for this project)
 echo ""
-echo "📦 Installing Anchor..."
-echo "Note: Anchor 0.32+ works with Agave"
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli
+echo "📦 Installing Anchor 0.30.1..."
+echo "Note: This project requires Anchor 0.30.1, NOT 0.32+"
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
 
 # Verify installation
 echo ""
@@ -79,10 +71,13 @@ echo "   solana airdrop 2"
 echo "   anchor deploy --provider.cluster devnet"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "Migration Notes:"
+echo "Version Requirements:"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "• solana-validator → agave-validator (or solana still works)"
-echo "• solana-install → agave-install (use anza.xyz URLs now)"
-echo "• See: https://github.com/anza-xyz/agave/wiki/Agave-Transition"
+echo "  Anchor: 0.30.1 (required)"
+echo "  Solana: 1.18.x (required)"
+echo ""
+echo "If you have Anchor 0.32+ or Solana 2.x+, reinstall with:"
+echo "  cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli --force"
+echo "  sh -c \"\$(curl -sSfL https://release.solana.com/v1.18.26/install)\""
 echo ""
