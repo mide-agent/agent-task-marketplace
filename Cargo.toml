@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/agent_task_marketplace"]
+members = ["programs/agent-task-marketplace"]
 resolver = "2"
 
 [profile.release]
