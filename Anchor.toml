@@ -1,9 +1,9 @@
 [toolchain]
-anchor_version = "0.30.1"
+anchor_version = "0.32.1"
 solana_version = "1.18.0"
 
 [features]
-seeds = false
+resolution = true
 skip-lint = false
 
 [programs.localnet]
@@ -16,7 +16,7 @@ agent_task_marketplace = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
