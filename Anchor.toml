@@ -16,4 +16,4 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "npx tsx tests/agent-task-marketplace.ts"
+test = "npx tsx tests/agent_task_marketplace.ts"
