@@ -4,6 +4,7 @@ use anchor_spl::token::{self, Token, TokenAccount, Mint, Transfer};
 pub mod instructions;
 pub mod state;
 
+use instructions::*;
 use state::*;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
