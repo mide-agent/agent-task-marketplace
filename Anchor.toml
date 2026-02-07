@@ -17,3 +17,6 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "npx tsx tests/agent_task_marketplace.ts"
+
+[workspace]
+members = ["programs/agent_task_marketplace"]
