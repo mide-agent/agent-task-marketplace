@@ -47,8 +47,17 @@ pub fn handler(ctx: Context<ReleasePayment>, milestone_index: u8) -> Result<()> 
     require!(milestone.completed, ErrorCode::MilestoneNotCompleted);
     require!(!milestone.paid, ErrorCode::MilestoneAlreadyPaid);
     
+    // Save amount before we modify
+    let amount = milestone.amount;
+    
     // Mark milestone as paid
     milestone.paid = true;
+    
+    // Check if all milestones are paid BEFORE the transfer (avoids borrow issues)
+    let all_paid = task.milestones.iter().all(|m| m.paid);
+    if all_paid {
+        task.status = TaskStatus::Completed;
+    }
     
     // Transfer payment to freelancer
     let escrow_key = escrow.key();
@@ -71,17 +80,11 @@ pub fn handler(ctx: Context<ReleasePayment>, milestone_index: u8) -> Result<()> 
         signer,
     );
     
-    token::transfer(cpi_ctx, milestone.amount)?;
+    token::transfer(cpi_ctx, amount)?;
     
-    escrow.released_amount = escrow.released_amount.checked_add(milestone.amount).unwrap();
+    escrow.released_amount = escrow.released_amount.checked_add(amount).unwrap();
     
-    // Check if all milestones are paid
-    let all_paid = task.milestones.iter().all(|m| m.paid);
-    if all_paid {
-        task.status = TaskStatus::Completed;
-    }
-    
-    msg!("Payment released for milestone {}: {}", milestone_index, milestone.amount);
+    msg!("Payment released for milestone {}: {}", milestone_index, amount);
     Ok(())
 }
 

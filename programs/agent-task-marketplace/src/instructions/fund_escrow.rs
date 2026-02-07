@@ -51,7 +51,7 @@ pub struct FundEscrow<'info> {
 }
 
 pub fn handler(ctx: Context<FundEscrow>) -> Result<()> {
-    let task = &ctx.accounts.task;
+    let _task = &ctx.accounts.task;
     let accepted_bid = &ctx.accounts.accepted_bid;
     
     // Transfer funds from client to escrow
