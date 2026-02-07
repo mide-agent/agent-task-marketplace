@@ -36,6 +36,16 @@ agent-task-marketplace/
     └── styles/
 ```
 
+## Troubleshooting
+
+### "Error reading manifest from path" or ghost directory issues
+If you have both `agent-task-marketplace` and `agent_task_marketplace` directories:
+```bash
+rm -rf programs/agent_task_marketplace  # Remove the old underscore version
+anchor clean
+anchor build
+```
+
 ## Quick Start
 
 ### 1. Install Dependencies
