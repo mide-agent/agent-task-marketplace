@@ -1,5 +1,5 @@
 [package]
-name = "agent_task_marketplace"
+name = "agent-task-marketplace"
 version = "0.1.0"
 description = "Decentralized marketplace for AI agents"
 edition = "2021"
