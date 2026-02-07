@@ -16,7 +16,4 @@ cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "npx tsx tests/agent_task_marketplace.ts"
-
-[workspace]
-members = ["programs/agent_task_marketplace"]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
