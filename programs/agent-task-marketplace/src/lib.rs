@@ -1,20 +1,18 @@
 use anchor_lang::prelude::*;
 
-pub mod instructions;
-pub mod state;
-
-pub use instructions::*;
-pub use state::*;
-
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
+pub mod state;
+pub mod instructions;
+
+use state::*;
 
 #[program]
 pub mod agent_task_marketplace {
     use super::*;
 
-    // Task Instructions
     pub fn post_task(
-        ctx: Context<PostTask>,
+        ctx: Context<instructions::post_task::PostTask>,
         title: String,
         description: String,
         budget: u64,
@@ -25,7 +23,7 @@ pub mod agent_task_marketplace {
     }
 
     pub fn update_task(
-        ctx: Context<UpdateTask>,
+        ctx: Context<instructions::update_task::UpdateTask>,
         description: Option<String>,
         budget: Option<u64>,
         deadline: Option<i64>,
@@ -33,13 +31,12 @@ pub mod agent_task_marketplace {
         instructions::update_task::handler(ctx, description, budget, deadline)
     }
 
-    pub fn cancel_task(ctx: Context<CancelTask>) -> Result<()> {
+    pub fn cancel_task(ctx: Context<instructions::cancel_task::CancelTask>) -> Result<()> {
         instructions::cancel_task::handler(ctx)
     }
 
-    // Bid Instructions
     pub fn submit_bid(
-        ctx: Context<SubmitBid>,
+        ctx: Context<instructions::submit_bid::SubmitBid>,
         amount: u64,
         timeline: i64,
         proposal: String,
@@ -47,45 +44,43 @@ pub mod agent_task_marketplace {
         instructions::submit_bid::handler(ctx, amount, timeline, proposal)
     }
 
-    pub fn accept_bid(ctx: Context<AcceptBid>) -> Result<()> {
+    pub fn accept_bid(ctx: Context<instructions::accept_bid::AcceptBid>) -> Result<()> {
         instructions::accept_bid::handler(ctx)
     }
 
-    pub fn reject_bid(ctx: Context<RejectBid>) -> Result<()> {
+    pub fn reject_bid(ctx: Context<instructions::reject_bid::RejectBid>) -> Result<()> {
         instructions::reject_bid::handler(ctx)
     }
 
-    pub fn withdraw_bid(ctx: Context<WithdrawBid>) -> Result<()> {
+    pub fn withdraw_bid(ctx: Context<instructions::withdraw_bid::WithdrawBid>) -> Result<()> {
         instructions::withdraw_bid::handler(ctx)
     }
 
-    // Escrow Instructions
-    pub fn fund_escrow(ctx: Context<FundEscrow>) -> Result<()> {
+    pub fn fund_escrow(ctx: Context<instructions::fund_escrow::FundEscrow>) -> Result<()> {
         instructions::fund_escrow::handler(ctx)
     }
 
-    pub fn complete_milestone(ctx: Context<CompleteMilestone>, milestone_index: u8) -> Result<()> {
+    pub fn complete_milestone(ctx: Context<instructions::complete_milestone::CompleteMilestone>, milestone_index: u8) -> Result<()> {
         instructions::complete_milestone::handler(ctx, milestone_index)
     }
 
-    pub fn release_payment(ctx: Context<ReleasePayment>, milestone_index: u8) -> Result<()> {
+    pub fn release_payment(ctx: Context<instructions::release_payment::ReleasePayment>, milestone_index: u8) -> Result<()> {
         instructions::release_payment::handler(ctx, milestone_index)
     }
 
-    pub fn request_refund(ctx: Context<RequestRefund>) -> Result<()> {
+    pub fn request_refund(ctx: Context<instructions::request_refund::RequestRefund>) -> Result<()> {
         instructions::request_refund::handler(ctx)
     }
 
-    // Reputation Instructions
     pub fn submit_review(
-        ctx: Context<SubmitReview>,
+        ctx: Context<instructions::submit_review::SubmitReview>,
         rating: u8,
         review_text: String,
     ) -> Result<()> {
         instructions::submit_review::handler(ctx, rating, review_text)
     }
 
-    pub fn initialize_agent_profile(ctx: Context<InitializeAgentProfile>, name: String) -> Result<()> {
+    pub fn initialize_agent_profile(ctx: Context<instructions::initialize_agent_profile::InitializeAgentProfile>, name: String) -> Result<()> {
         instructions::initialize_agent_profile::handler(ctx, name)
     }
 }
