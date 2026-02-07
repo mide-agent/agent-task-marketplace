@@ -113,6 +113,19 @@ anchor clean
 anchor build
 ```
 
+### "Failed to obtain package metadata" or dependency issues
+If you get errors about `constant_time_eq` or other dependency conflicts:
+```bash
+# Update specific dependencies
+cargo update -p constant_time_eq --precise 0.3.1
+
+# Or update all dependencies
+cargo update
+
+# Then rebuild
+anchor build
+```
+
 ### Check Versions
 ```bash
 anchor --version  # Should be 0.32.1
