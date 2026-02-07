@@ -5,15 +5,9 @@ This guide covers building and deploying the Agent Task Marketplace on Solana.
 ## Prerequisites
 
 - **Rust** 1.70+ 
-- **Solana CLI** 1.18.x (NOT 2.x/Agave - see note below)
-- **Anchor CLI** 0.30.1
+- **Agave/Solana CLI** 2.0+ (formerly Solana)
+- **Anchor CLI** 0.32.1+
 - **Node.js** 18+
-
-## ⚠️ Important: Use Solana 1.18.x and Anchor 0.30.1
-
-This project requires **Anchor 0.30.1** and **Solana 1.18.x** (not the new Agave 2.x/3.x).
-
-**Why:** Anchor 0.32+ has breaking changes in the `#[program]` macro that cause compilation issues with our module structure. We use 0.30.1 for stability during the hackathon.
 
 ## Quick Install (Mac/Linux)
 
@@ -23,24 +17,21 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 ```
 
-### 2. Install Solana CLI 1.18.x
+### 2. Install Agave CLI (new Solana)
 ```bash
-# Install specific version 1.18.26 (stable)
-sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
-
-# Add to PATH
+sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-
-# Verify - should show 1.18.x
-solana --version
 ```
 
-### 3. Install Anchor 0.30.1
+### 3. Verify
 ```bash
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli
+solana --version  # Should show 2.x.x or 3.x.x
+```
 
-# Verify
-anchor --version  # Should show 0.30.1
+### 4. Install Anchor 0.32.1
+```bash
+cargo install --git https://github.com/coral-xyz/anchor --tag v0.32.1 anchor-cli
+anchor --version  # Should show 0.32.1
 ```
 
 ## Build
@@ -66,7 +57,7 @@ anchor test
 
 ## Deploy to Devnet
 
-### 1. Configure Solana CLI
+### 1. Configure CLI
 ```bash
 solana config set --url devnet
 solana config get
@@ -74,10 +65,7 @@ solana config get
 
 ### 2. Create Wallet
 ```bash
-# Create new wallet
 solana-keygen new --outfile ~/.config/solana/devnet.json
-
-# Set as default
 solana config set --keypair ~/.config/solana/devnet.json
 ```
 
@@ -94,7 +82,7 @@ anchor deploy --provider.cluster devnet
 ```
 
 ### 5. Save Program ID
-After deployment, update these files with your new program ID:
+Update these files with your new program ID:
 - `Anchor.toml` → `[programs.devnet]` section
 - `programs/agent-task-marketplace/src/lib.rs` → `declare_id!`
 - `sdk/idl.json` → `metadata.address`
@@ -105,55 +93,34 @@ After deployment, update these files with your new program ID:
 cd frontend
 npm install
 
-# Create .env.local
-cat > .env.local << 'EOF'
-NEXT_PUBLIC_PROGRAM_ID=YOUR_PROGRAM_ID_HERE
-NEXT_PUBLIC_NETWORK=devnet
-EOF
+echo "NEXT_PUBLIC_PROGRAM_ID=YOUR_PROGRAM_ID" > .env.local
+echo "NEXT_PUBLIC_NETWORK=devnet" >> .env.local
 
-# Run dev server
 npm run dev
 ```
 
 ## Troubleshooting
 
-### "unresolved import `crate`" error
-You're using Anchor 0.32+ but need 0.30.1:
-```bash
-cargo install --git https://github.com/coral-xyz/anchor --tag v0.30.1 anchor-cli --force
-```
-
 ### "Command not installed: `solana-install`"
-You have Agave 2.x/3.x but need Solana 1.18.x:
+You have Anchor 0.32+ but need to install Agave:
 ```bash
-sh -c "$(curl -sSfL https://release.solana.com/v1.18.26/install)"
+sh -c "$(curl -sSfL https://release.anza.xyz/v2.1.0/install)"
 ```
 
 ### Build Errors
-- Clear cache: `anchor clean && anchor build`
-- Check versions:
-  ```bash
-  anchor --version  # Should be 0.30.1
-  solana --version  # Should be 1.18.x
-  ```
-
-### "No such file or directory"
-Solana CLI not in PATH:
 ```bash
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+anchor clean
+anchor build
 ```
 
-## Version Compatibility
-
-| Component | Version Required | Notes |
-|-----------|------------------|-------|
-| Anchor | 0.30.1 | NOT 0.32+ |
-| Solana CLI | 1.18.x | NOT 2.x/Agave |
-| Rust | 1.70+ | |
-| Node.js | 18+ | |
+### Check Versions
+```bash
+anchor --version  # Should be 0.32.1
+solana --version  # Should be 2.x or 3.x
+```
 
 ## Resources
 
+- **Agave Transition**: https://github.com/anza-xyz/agave/wiki/Agave-Transition
 - **Anchor Docs**: https://book.anchor-lang.com
-- **Solana Docs**: https://docs.solana.com
 - **Project Repo**: https://github.com/mide-agent/agent-task-marketplace
