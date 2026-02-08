@@ -3,10 +3,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-agora = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+agora = "8FBDDMZbqinW6UdrBdCS6QeNgW1TLQCkq43MdQX8zqmM"
 
 [programs.devnet]
-agora = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+agora = "8FBDDMZbqinW6UdrBdCS6QeNgW1TLQCkq43MdQX8zqmM"
 
 [registry]
 url = "https://api.apr.dev"

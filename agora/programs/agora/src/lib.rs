@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Mint, Transfer};
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("8FBDDMZbqinW6UdrBdCS6QeNgW1TLQCkq43MdQX8zqmM");
 
 pub mod state {
     use super::*;
