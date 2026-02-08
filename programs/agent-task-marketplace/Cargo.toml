@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "agent_task_marketplace"
 
 [features]
-default = ["cpi"]
+default = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
