@@ -3,16 +3,6 @@ use anchor_spl::token::{self, Token, TokenAccount, Mint, Transfer};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
-/// Agora - Agent Task Marketplace
-/// 
-/// Security Features:
-/// - ✅ All arithmetic uses checked_* methods (prevents overflow)
-/// - ✅ All accounts use Account<T> with proper constraints
-/// - ✅ All signers use Signer<'info> (not AccountInfo)
-/// - ✅ All token accounts validated before CPI
-/// - ✅ Rent exemption checked where applicable
-/// - ✅ Discriminator checked automatically by Anchor
-
 pub mod state {
     use super::*;
 
@@ -37,18 +27,8 @@ pub mod state {
         pub const MAX_MILESTONES: usize = 10;
         
         pub fn space(milestone_count: usize) -> usize {
-            8 + // discriminator
-            32 + // owner
-            4 + Self::MAX_TITLE_LEN + // title
-            4 + Self::MAX_DESC_LEN + // description
-            8 + // budget
-            4 + (milestone_count * Milestone::SIZE) + // milestones
-            8 + // deadline
-            1 + // status
-            1 + 32 + // accepted_bid (Option)
-            1 + 32 + // escrow_account (Option)
-            8 + // created_at
-            8 // updated_at
+            8 + 32 + 4 + Self::MAX_TITLE_LEN + 4 + Self::MAX_DESC_LEN + 8 +
+            4 + (milestone_count * Milestone::SIZE) + 8 + 1 + 1 + 32 + 1 + 32 + 8 + 8
         }
     }
 
@@ -88,14 +68,7 @@ pub mod state {
         pub const MAX_PROPOSAL_LEN: usize = 2000;
         
         pub fn space() -> usize {
-            8 + // discriminator
-            32 + // task
-            32 + // bidder
-            8 + // amount
-            8 + // timeline
-            4 + Self::MAX_PROPOSAL_LEN + // proposal
-            1 + // status
-            8 // created_at
+            8 + 32 + 32 + 8 + 8 + 4 + Self::MAX_PROPOSAL_LEN + 1 + 8
         }
     }
 
@@ -119,15 +92,7 @@ pub mod state {
     }
 
     impl Escrow {
-        pub const SIZE: usize = 
-            8 + // discriminator
-            32 + // task
-            32 + // client
-            32 + // freelancer
-            8 + // total_amount
-            8 + // released_amount
-            32 + // token_mint
-            1; // bump
+        pub const SIZE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 32 + 1;
     }
 
     #[account]
@@ -147,16 +112,7 @@ pub mod state {
         pub const MAX_NAME_LEN: usize = 50;
         
         pub fn space() -> usize {
-            8 + // discriminator
-            32 + // owner
-            4 + Self::MAX_NAME_LEN + // name
-            4 + // tasks_posted
-            4 + // tasks_completed
-            8 + // total_earned
-            8 + // total_spent
-            4 + // rating_sum
-            4 + // rating_count
-            8 // created_at
+            8 + 32 + 4 + Self::MAX_NAME_LEN + 4 + 4 + 8 + 8 + 4 + 4 + 8
         }
     }
 
@@ -174,13 +130,7 @@ pub mod state {
         pub const MAX_REVIEW_LEN: usize = 1000;
         
         pub fn space() -> usize {
-            8 + // discriminator
-            32 + // reviewer
-            32 + // reviewee
-            32 + // task
-            1 + // rating
-            4 + Self::MAX_REVIEW_LEN + // review_text
-            8 // created_at
+            8 + 32 + 32 + 32 + 1 + 4 + Self::MAX_REVIEW_LEN + 8
         }
     }
 }
@@ -229,16 +179,12 @@ pub enum AgoraError {
     NameTooLong,
 }
 
-// Task Instructions
 #[derive(Accounts)]
 #[instruction(title: String, description: String, milestones: Vec<Milestone>)]
 pub struct PostTask<'info> {
-    /// The owner posting the task - must be a signer
     #[account(mut)]
     pub owner: Signer<'info>,
     
-    /// The task account being created
-    /// Using init constraint - Anchor validates discriminator
     #[account(
         init,
         payer = owner,
@@ -251,7 +197,6 @@ pub struct PostTask<'info> {
 
 #[derive(Accounts)]
 pub struct UpdateTask<'info> {
-    /// Only the owner can update, and only when task is Open
     #[account(mut)]
     pub owner: Signer<'info>,
     
@@ -272,20 +217,17 @@ pub struct CancelTask<'info> {
         mut,
         constraint = task.owner == owner.key(),
         constraint = task.status == TaskStatus::Open || task.status == TaskStatus::InProgress,
-        constraint = task.escrow_account.is_none() @ AgoraError::RefundNotAllowed
+        constraint = task.escrow_account.is_none()
     )]
     pub task: Account<'info, Task>,
 }
 
-// Bid Instructions
 #[derive(Accounts)]
 #[instruction(proposal: String)]
 pub struct SubmitBid<'info> {
-    /// Bidder must sign the transaction
     #[account(mut)]
     pub bidder: Signer<'info>,
     
-    /// Task must be open, bidder cannot be owner
     #[account(
         mut,
         constraint = task.status == TaskStatus::Open,
@@ -293,7 +235,6 @@ pub struct SubmitBid<'info> {
     )]
     pub task: Account<'info, Task>,
     
-    /// New bid account being created
     #[account(
         init,
         payer = bidder,
@@ -347,7 +288,6 @@ pub struct WithdrawBid<'info> {
     #[account(mut)]
     pub bidder: Signer<'info>,
     
-    /// Using Anchor's close constraint - properly closes account
     #[account(
         mut,
         constraint = bid.bidder == bidder.key(),
@@ -359,7 +299,6 @@ pub struct WithdrawBid<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// Escrow Instructions
 #[derive(Accounts)]
 pub struct FundEscrow<'info> {
     #[account(mut)]
@@ -496,7 +435,6 @@ pub struct RequestRefund<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-// Reputation Instructions
 #[derive(Accounts)]
 pub struct InitializeAgentProfile<'info> {
     #[account(mut)]
@@ -559,7 +497,6 @@ pub struct SubmitReview<'info> {
 pub mod agora {
     use super::*;
 
-    // Task Instructions
     pub fn post_task(
         ctx: Context<PostTask>,
         title: String,
@@ -576,7 +513,6 @@ pub mod agora {
         require!(!milestones.is_empty(), AgoraError::NoMilestones);
         require!(milestones.len() <= Task::MAX_MILESTONES, AgoraError::TooManyMilestones);
         
-        // Use checked arithmetic to prevent overflow
         let total: u64 = milestones.iter().map(|m| m.amount).sum();
         require!(total == budget, AgoraError::MilestoneAmountMismatch);
         
@@ -637,7 +573,6 @@ pub mod agora {
         Ok(())
     }
 
-    // Bid Instructions
     pub fn submit_bid(
         ctx: Context<SubmitBid>,
         amount: u64,
@@ -650,12 +585,7 @@ pub mod agora {
         
         let clock = Clock::get()?;
         let task = &ctx.accounts.task;
-        
-        // Checked addition to prevent overflow
-        let completion_time = clock.unix_timestamp
-            .checked_add(timeline)
-            .ok_or(AgoraError::TimelineExceedsDeadline)?;
-        require!(completion_time <= task.deadline, AgoraError::TimelineExceedsDeadline);
+        require!(clock.unix_timestamp + timeline <= task.deadline, AgoraError::TimelineExceedsDeadline);
         
         let bid = &mut ctx.accounts.bid;
         bid.task = ctx.accounts.task.key();
@@ -696,7 +626,6 @@ pub mod agora {
         Ok(())
     }
 
-    // Escrow Instructions
     pub fn fund_escrow(ctx: Context<FundEscrow>) -> Result<()> {
         let accepted_bid = &ctx.accounts.accepted_bid;
         
@@ -760,7 +689,6 @@ pub mod agora {
             task.status = TaskStatus::Completed;
         }
         
-        // PDA signing for escrow
         let escrow_key = escrow.key();
         let seeds = &[b"escrow", escrow_key.as_ref(), &[escrow.bump]];
         let signer = &[&seeds[..]];
@@ -779,10 +707,7 @@ pub mod agora {
         
         token::transfer(cpi_ctx, amount)?;
         
-        // Use checked_add for arithmetic safety
-        escrow.released_amount = escrow.released_amount
-            .checked_add(amount)
-            .ok_or(AgoraError::InvalidAmount)?;
+        escrow.released_amount = escrow.released_amount.checked_add(amount).unwrap();
         
         msg!("Payment released for milestone {}: {}", milestone_index, amount);
         Ok(())
@@ -799,13 +724,9 @@ pub mod agora {
             AgoraError::RefundNotAllowed
         );
         
-        // Checked subtraction for arithmetic safety
-        let refund_amount = escrow.total_amount
-            .checked_sub(escrow.released_amount)
-            .ok_or(AgoraError::NoFundsToRefund)?;
+        let refund_amount = escrow.total_amount - escrow.released_amount;
         require!(refund_amount > 0, AgoraError::NoFundsToRefund);
         
-        // PDA signing for escrow
         let escrow_key = escrow.key();
         let seeds = &[b"escrow", escrow_key.as_ref(), &[escrow.bump]];
         let signer = &[&seeds[..]];
@@ -828,7 +749,6 @@ pub mod agora {
         Ok(())
     }
 
-    // Reputation Instructions
     pub fn initialize_agent_profile(ctx: Context<InitializeAgentProfile>, name: String) -> Result<()> {
         require!(name.len() <= AgentProfile::MAX_NAME_LEN, AgoraError::NameTooLong);
         
@@ -868,12 +788,8 @@ pub mod agora {
         review.created_at = clock.unix_timestamp;
         
         let profile = &mut ctx.accounts.reviewee_profile;
-        profile.rating_sum = profile.rating_sum
-            .checked_add(rating as u32)
-            .ok_or(AgoraError::InvalidRating)?;
-        profile.rating_count = profile.rating_count
-            .checked_add(1)
-            .ok_or(AgoraError::InvalidRating)?;
+        profile.rating_sum = profile.rating_sum + rating as u32;
+        profile.rating_count = profile.rating_count + 1;
         
         msg!("Review submitted: {} stars", rating);
         Ok(())
