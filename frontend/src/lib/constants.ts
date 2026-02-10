@@ -8,11 +8,19 @@ export const IDL_ACCOUNT = new PublicKey(
   "xsijTog5PFJQRZyQRi1yFcAPZsq5Jmpquj9GE5acecq"
 );
 
-export const NETWORK = "devnet";
+export const NETWORK = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet";
+
+// Use Helius RPC if API key is provided, otherwise fallback to public endpoints
+const HELIUS_API_KEY = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
+const HELIUS_NETWORK = NETWORK === "mainnet" ? "mainnet" : "devnet";
 
 export const RPC_ENDPOINT =
-  process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
-  "https://api.devnet.solana.com";
+  HELIUS_API_KEY
+    ? `https://${HELIUS_NETWORK}.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
+    : process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
+      (NETWORK === "mainnet"
+        ? "https://api.mainnet-beta.solana.com"
+        : "https://api.devnet.solana.com");
 
 export const TASK_SEED = "task";
 export const BID_SEED = "bid";

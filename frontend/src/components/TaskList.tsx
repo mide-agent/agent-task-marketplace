@@ -102,7 +102,8 @@ export default function TaskList() {
     fetchTasks();
     const interval = setInterval(fetchTasks, 30000);
     return () => clearInterval(interval);
-  }, [getAllTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredTasks = tasks.filter((task) => {
     if (filter === "all") return true;
