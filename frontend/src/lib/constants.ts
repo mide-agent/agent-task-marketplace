@@ -14,9 +14,26 @@ export const NETWORK = process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet";
 const HELIUS_API_KEY = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
 const HELIUS_NETWORK = NETWORK === "mainnet" ? "mainnet" : "devnet";
 
+// Support both full Helius URLs and just the API key
+function buildHeliusEndpoint(apiKey: string, network: string): string {
+  // If user accidentally pasted full URL, extract just the key
+  if (apiKey.includes("helius-rpc.com")) {
+    try {
+      const url = new URL(apiKey);
+      const key = url.searchParams.get("api-key");
+      if (key) {
+        return `https://${network}.helius-rpc.com/?api-key=${key}`;
+      }
+    } catch {
+      // Not a valid URL, treat as key
+    }
+  }
+  return `https://${network}.helius-rpc.com/?api-key=${apiKey}`;
+}
+
 export const RPC_ENDPOINT =
   HELIUS_API_KEY
-    ? `https://${HELIUS_NETWORK}.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
+    ? buildHeliusEndpoint(HELIUS_API_KEY, HELIUS_NETWORK)
     : process.env.NEXT_PUBLIC_RPC_ENDPOINT ||
       (NETWORK === "mainnet"
         ? "https://api.mainnet-beta.solana.com"
